@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - Smart Quiz</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+        body { background-color: #e3f2fd; padding-top: 80px; }
+
+        .navbar {
+            background-color: #0d47a1; color: white; padding: 0 30px; height: 70px;
+            display: flex; justify-content: space-between; align-items: center;
+            position: fixed; top: 0; width: 100%; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .brand { font-size: 22px; font-weight: bold; }
+        .nav-links { display: flex; gap: 15px; list-style: none; }
+        .nav-links a { color: white; text-decoration: none; padding: 8px 15px; border-radius: 4px; transition: 0.3s; }
+        .logout-btn { background: #b71c1c !important; font-weight: bold; }
+
+        .dashboard-wrapper { max-width: 1200px; margin: 20px auto; padding: 0 20px; display: flex; gap: 25px; flex-wrap: wrap; }
+        .left-section { flex: 2; min-width: 600px; }
+        .right-section { flex: 1; min-width: 320px; }
+
+        .card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; border-top: 4px solid #0d47a1; }
+        .card-header { font-size: 17px; font-weight: bold; color: #0d47a1; margin-bottom: 18px; border-bottom: 1px solid #eee; padding-bottom: 12px; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 12px; background: #f8f9fa; color: #666; }
+        td { padding: 15px; border-bottom: 1px solid #f0f0f0; }
+
+        /* Button Style */
+        .btn-action { 
+            display: inline-block; padding: 8px 15px; border-radius: 6px; 
+            text-decoration: none; color: white; font-weight: bold; 
+            font-size: 13px; transition: 0.3s; margin-right: 5px;
+        }
+        .btn-freeze { background: #ffa000; }
+        .btn-revoke { background: #d32f2f; }
+        .btn-action:hover { opacity: 0.8; transform: translateY(-2px); }
+
+        .status-badge { font-weight: bold; padding: 5px 10px; border-radius: 20px; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="brand">SMART QUIZ</div>
+        <ul class="nav-links">
+            <li><a href="{{ url_for('admin_home') }}">Home</a></li>
+            <li><a href="{{ url_for('user_management') }}">User Management</a></li>
+            <li><a href="{{ url_for('analytics') }}">Analytics</a></li>
+            <li><a href="{{ url_for('profile') }}">Profile</a><li>
+            <li><a href="{{ url_for('logout') }}" class="logout-btn">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="dashboard-wrapper">
+        <div class="left-section">
+            <div class="card">
+    <div class="card-header"> OVERALL STUDENT RESULT (SUBJECT-WISE)</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Student Name</th>
+                <th>Physics</th>
+                <th>Chemistry</th>
+                <th>Maths</th>
+                <th>Biology</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+<tbody>
+    
+    {% for s in results %}
+    <tr>
+        <td><b>{{ s.fullname }}</b></td>
+        <td style="color: #0d47a1; font-weight: bold;">{{ s.physics }}</td>
+        <td style="color: #0d47a1; font-weight: bold;">{{ s.chemistry }}</td>
+        <td style="color: #0d47a1; font-weight: bold;">{{ s.maths }}</td>
+        <td style="color: #0d47a1; font-weight: bold;">{{ s.biology }}</td>
+        
+        
+        <td>
+            <span class="status-badge" style="background: {{ '#fff3e0' if s.status == 'Freezed' else '#ffebee' if s.status == 'Revoked' else '#e8f5e9' }}; padding: 4px 10px; border-radius: 15px; font-size: 11px;">
+                {{ s.status if s.status else 'Active' }}
+            </span>
+        </td>
+
+        
+        <td>
+            <!-- Freeze Button -->
+            <a href="{{ url_for('update_status', student_id=s.id, new_status='Freezed') }}" 
+               class="btn-action btn-freeze" style="padding: 5px 8px; font-size: 11px; background: #ffa000; color: white; text-decoration: none; border-radius: 4px;">Freeze</a>
+            
+            <!-- Revoke Button -->
+            <a href="{{ url_for('update_status', student_id=s.id, new_status='Revoked') }}" 
+               class="btn-action btn-revoke" style="padding: 5px 8px; font-size: 11px; background: #d32f2f; color: white; text-decoration: none; border-radius: 4px;">Revoke</a>
+
+            
+            {% if s.status != 'Active' %}
+                <a href="{{ url_for('update_status', student_id=s.id, new_status='Active') }}" 
+                   style="padding: 5px 8px; font-size: 11px; background: green; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">Activate</a>
+            {% endif %}
+        </td>
+    </tr>
+    {% else %}
+   
+    <tr><td colspan="7" style="text-align: center; padding: 20px;">No Student Records Found.</td></tr>
+    {% endfor %}
+</tbody>
+    </table>
+</div>
+</div>
+
+        <div class="right-section">
+            <div class="card">
+                <div class="card-header">ACTION CENTER</div>
+                <p style="font-size: 14px; color: #555; margin-bottom: 20px;">
+                    Hi Admin, you can finalize and print the results once verified.
+                </p>
+                <button onclick="window.print()" style="width: 100%; background: #2e7d32; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer;">PRINT FINAL CERTIFICATE</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
